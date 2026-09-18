@@ -1,0 +1,70 @@
+@model SphotoApp.Web.Models.EppConfig
+@{ ViewData["Title"] = "Cấu hình kết nối"; }
+<div class="card form-card">
+    <h4>Cấu hình EPP Portal</h4>
+    <form asp-action="Save" method="post">
+        @Html.AntiForgeryToken()
+        <input asp-for="Id" type="hidden" />
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        @if (ViewBag.PasswordWarning is not null) { <div class="alert alert-warning">@ViewBag.PasswordWarning</div> }
+        <div class="row g-3">
+            <div class="col-md-6"><label asp-for="Name">Tên cấu hình</label><input asp-for="Name" class="form-control" /></div>
+            <div class="col-md-6"><label asp-for="LoginUrl">Login URL</label><input asp-for="LoginUrl" class="form-control" /></div>
+            <div class="col-md-6"><label asp-for="Username">Username / Email</label><input asp-for="Username" class="form-control" /></div>
+            <div class="col-md-6">
+                <label for="password">Password</label>
+                <div class="input-group">
+                    <input id="password" name="password" type="password" value="@ViewBag.CurrentPassword" class="form-control" autocomplete="new-password" />
+                    <button id="toggle-password" class="btn btn-outline-secondary" type="button" title="Hiện/ẩn mật khẩu"><i class="bi bi-eye"></i></button>
+                </div>
+                <span class="text-danger small">@Html.ValidationMessage("password")</span>
+            </div>
+            <div class="col-12">
+                <label asp-for="GoogleDriveFolderUrl">Google Drive folder URL</label>
+                <input asp-for="GoogleDriveFolderUrl" class="form-control" placeholder="https://drive.google.com/drive/folders/..." />
+            </div>
+            <div class="col-12"><hr /><h5>Cấu hình Gmail nhận link dự phòng</h5></div>
+            <div class="col-md-6"><label asp-for="GmailEmail">Email Gmail</label><input asp-for="GmailEmail" class="form-control" placeholder="ten@gmail.com" /></div>
+            <div class="col-md-6"><label asp-for="GmailImapHost">IMAP host</label><input asp-for="GmailImapHost" class="form-control" /></div>
+            <div class="col-md-4"><label asp-for="GmailImapPort">IMAP port</label><input asp-for="GmailImapPort" class="form-control" type="number" /></div>
+            <div class="col-md-8 d-flex align-items-end"><div class="form-check mb-2"><input asp-for="GmailUseSsl" class="form-check-input" /><label asp-for="GmailUseSsl" class="form-check-label">Dùng SSL</label></div></div>
+            <div class="col-12"><label for="gmailAppPassword">Gmail App Password</label><div class="input-group"><input id="gmailAppPassword" name="gmailAppPassword" type="password" value="@ViewBag.CurrentGmailAppPassword" class="form-control" autocomplete="off" placeholder="Nhập App Password Gmail" /><button id="toggle-gmail-password" class="btn btn-outline-secondary" type="button" title="Hiện/ẩn Gmail App Password"><i class="bi bi-eye"></i></button></div><div class="mt-2"><button id="test-gmail" type="button" class="btn btn-outline-primary"><i class="bi bi-plug"></i> Kiểm tra kết nối Gmail</button> <span id="gmail-result" class="small"></span></div></div>
+            <div class="col-12">
+                <label for="googleDriveApiKey">Google Drive API key</label>
+                <div class="input-group">
+                    <input id="googleDriveApiKey" name="googleDriveApiKey" type="password" value="@ViewBag.CurrentGoogleDriveApiKey" class="form-control" autocomplete="off" placeholder="Dán API key Google Drive" />
+                    <button id="toggle-drive-api-key" class="btn btn-outline-secondary" type="button" title="Hiện/ẩn Google Drive API key"><i class="bi bi-eye"></i></button>
+                </div>
+            </div>
+        </div>
+        <button class="btn btn-primary mt-4"><i class="bi bi-floppy"></i> Lưu cấu hình</button>
+    </form>
+</div>
+@section Scripts {
+<script>
+document.querySelector('#toggle-password').addEventListener('click', () => {
+    const input = document.querySelector('#password'); const icon = document.querySelector('#toggle-password i');
+    const visible = input.type === 'text'; input.type = visible ? 'password' : 'text';
+    icon.className = visible ? 'bi bi-eye' : 'bi bi-eye-slash';
+});
+document.querySelector('#toggle-drive-api-key').addEventListener('click', () => {
+    const input = document.querySelector('#googleDriveApiKey'); const icon = document.querySelector('#toggle-drive-api-key i');
+    const visible = input.type === 'text'; input.type = visible ? 'password' : 'text';
+    icon.className = visible ? 'bi bi-eye' : 'bi bi-eye-slash';
+});
+document.querySelector('#toggle-gmail-password').addEventListener('click', () => {
+    const input = document.querySelector('#gmailAppPassword'); const icon = document.querySelector('#toggle-gmail-password i');
+    const visible = input.type === 'text'; input.type = visible ? 'password' : 'text';
+    icon.className = visible ? 'bi bi-eye' : 'bi bi-eye-slash';
+});
+document.querySelector('#test-gmail').addEventListener('click', async () => {
+    const button = document.querySelector('#test-gmail'); const result = document.querySelector('#gmail-result');
+    button.disabled = true; result.className = 'small text-muted'; result.textContent = 'Đang kiểm tra kết nối...';
+    try {
+        const response = await fetch('@Url.Action("TestGmail")', { method: 'POST', headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value } });
+        const data = await response.json(); result.textContent = data.message || 'Không nhận được kết quả.'; result.className = 'small ' + (data.success ? 'text-success' : 'text-danger');
+    } catch { result.textContent = 'Không thể gọi kiểm tra kết nối Gmail.'; result.className = 'small text-danger'; }
+    finally { button.disabled = false; }
+});
+</script>
+}

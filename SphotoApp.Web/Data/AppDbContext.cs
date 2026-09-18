@@ -1,0 +1,2 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore; using Microsoft.EntityFrameworkCore; using SphotoApp.Web.Models;
+namespace SphotoApp.Web.Data; public class AppDbContext(DbContextOptions<AppDbContext> options):IdentityDbContext<ApplicationUser>(options) { public DbSet<Customer> Customers=>Set<Customer>(); public DbSet<EppConfig> EppConfigs=>Set<EppConfig>(); public DbSet<ExcelTemplate> ExcelTemplates=>Set<ExcelTemplate>(); public DbSet<ExcelMapping> ExcelMappings=>Set<ExcelMapping>(); public DbSet<DownloadHistory> DownloadHistories=>Set<DownloadHistory>(); }

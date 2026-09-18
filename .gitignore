@@ -1,0 +1,10 @@
+**/bin/
+**/obj/
+**/.vs/
+SphotoApp.Web/Storage/Downloads/
+SphotoApp.Web/Storage/Outputs/
+SphotoApp.Web/Storage/Errors/
+*.db
+*.sqlite
+*.user
+*.suo

@@ -1,0 +1,13 @@
+.preview-table { min-width: 1800px; table-layout: fixed; font-size: .78rem; }
+.preview-table th { font-size: .75rem; }
+.preview-table th, .preview-table td { padding: .55rem .7rem; vertical-align: top; line-height: 1.35; }
+.preview-table .preview-col-0 { width: 5%; white-space: nowrap; text-align: center; }
+.preview-table .preview-col-1 { width: 9%; white-space: nowrap; }
+.preview-table .preview-col-2 { width: 24%; white-space: normal; overflow-wrap: anywhere; }
+.preview-table .preview-col-3 { width: 9%; white-space: normal; overflow-wrap: anywhere; }
+.preview-table .preview-col-4 { width: 11%; white-space: normal; overflow-wrap: anywhere; }
+.preview-table .preview-col-5 { width: 9%; white-space: normal; overflow-wrap: anywhere; }
+.preview-table .preview-col-6 { width: 8%; white-space: nowrap; }
+.preview-table .preview-col-7 { width: 12%; white-space: normal; overflow-wrap: anywhere; color: #2563eb; }
+.preview-table .preview-col-8 { width: 13%; white-space: normal; overflow-wrap: anywhere; }
+.preview-table .preview-col-9 { width: 13%; white-space: normal; overflow-wrap: anywhere; }

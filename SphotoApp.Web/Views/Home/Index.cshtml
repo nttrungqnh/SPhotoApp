@@ -1,0 +1,3 @@
+@model SphotoApp.Web.ViewModels.DashboardVm
+@{ ViewData["Title"]="Tổng quan"; }
+<div class="stats"><div class="card"><small>Lần tải gần nhất</small><b>@(Model.Latest?.StartedAt.ToLocalTime().ToString("dd/MM HH:mm") ?? "Chưa có")</b></div><div class="card"><small>Bản ghi gần nhất</small><b>@(Model.Latest?.RecordCount ?? 0)</b></div><div class="card"><small>Lần tải hôm nay</small><b>@Model.TodayCount</b></div><div class="card"><small>Số lượng khách hàng</small><b>@Model.CustomerCount</b></div></div>

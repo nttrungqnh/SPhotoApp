@@ -1,0 +1,39 @@
+@model SphotoApp.Web.ViewModels.MappingPageVm
+@{ ViewData["Title"] = "Mapping Excel"; }
+<div class="card form-card">
+    <span class="eyebrow">BƯỚC 1</span><h4>Chọn dữ liệu cần mapping</h4>
+    <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-6"><label>Excel Template đầu ra</label><select name="templateId" class="form-select" onchange="this.form.submit()"><option value="">-- Chọn Template --</option>@foreach(var t in Model.Templates){<option value="@t.Id" selected="@(t.Id == Model.TemplateId ? "selected" : null)">@t.Name @(t.IsActive ? "(Đang dùng)" : "")</option>}</select></div>
+        <div class="col-md-6"><label>File Excel nguồn từ EPP</label><select name="sourceHistoryId" class="form-select" onchange="this.form.submit()"><option value="">-- Chọn file đã tải --</option>@foreach(var source in Model.SourceFiles){<option value="@source.Id" selected="@(source.Id == Model.SourceHistoryId ? "selected" : null)">@source.SourceFileName — @source.StartedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</option>}</select></div>
+    </form>
+</div>
+@if(!Model.TemplateId.HasValue){<div class="alert alert-warning">Hãy upload và chọn một Excel Template để bắt đầu.</div>}
+else if(!Model.SourceHistoryId.HasValue){<div class="alert alert-info">Chọn một file Excel nguồn đã tải từ EPP. Hệ thống sẽ đọc các header để bạn mapping trực quan.</div>}
+else if(!Model.SourceHeaders.Any() || !Model.TargetColumns.Any()){<div class="alert alert-warning">Không đọc được header từ file nguồn hoặc Template. Kiểm tra header nguồn ở dòng 1 và header Template ở dòng trước <code>Target Start Row</code>.</div>}
+else{
+<div class="card form-card">
+    <span class="eyebrow">BƯỚC 2</span><h4>Ghép cột nguồn với cột Template</h4><p class="text-muted">Chọn cột trong file EPP ở bên trái, rồi chọn cột tương ứng trong Template đầu ra ở bên phải.</p>
+    <form id="mapping-form" asp-action="Save" method="post" class="row g-3 align-items-end">@Html.AntiForgeryToken()<input name="TemplateId" value="@Model.TemplateId" type="hidden" />
+        <div class="col-md-4"><label>Cột nguồn EPP</label><select name="SourceHeader" class="form-select" required><option value="">-- Chọn cột nguồn --</option>@foreach(var header in Model.SourceHeaders){<option value="@header">@header</option>}</select></div>
+        <div class="col-md-4"><label>Cột Template đầu ra</label><select name="TargetColumn" class="form-select" required><option value="">-- Chọn cột đích --</option>@foreach(var column in Model.TargetColumns){<option value="@column.Column">@column.DisplayName</option>}</select></div>
+        <div class="col-md-2"><label>Kiểu dữ liệu</label><select name="DataType" class="form-select"><option>Text</option><option>Number</option><option>Date</option></select></div>
+        <div class="col-md-2"><button class="btn btn-primary w-100"><i class="bi bi-plus-lg"></i> Thêm mapping</button></div>
+    </form>
+</div>
+<div class="card"><span class="eyebrow">BƯỚC 3</span><h4>Danh sách mapping hiện tại</h4><table class="table align-middle"><thead><tr><th>Cột nguồn EPP</th><th></th><th>Cột Template</th><th>Kiểu dữ liệu</th><th></th></tr></thead><tbody id="mapping-list">@if(!Model.Mappings.Any()){<tr id="empty-mappings"><td colspan="5" class="text-muted text-center py-4">Chưa có mapping nào.</td></tr>}@foreach(var item in Model.Mappings){<tr><td><strong>@item.SourceHeader</strong></td><td><i class="bi bi-arrow-right text-primary"></i></td><td><span class="badge text-bg-light border">@item.TargetColumn</span></td><td>@item.DataType</td><td><form asp-action="Delete" method="post">@Html.AntiForgeryToken()<input name="id" type="hidden" value="@item.Id"/><input name="templateId" type="hidden" value="@Model.TemplateId"/><button class="btn btn-sm btn-outline-danger">Xóa</button></form></td></tr>}</tbody></table></div>}
+@section Scripts {
+<script>
+const mappingForm = document.querySelector('#mapping-form');
+if (mappingForm) mappingForm.addEventListener('submit', async event => {
+    event.preventDefault(); const button = mappingForm.querySelector('button'); button.disabled = true;
+    try {
+        const response = await fetch(mappingForm.action, { method: 'POST', body: new FormData(mappingForm), headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        const data = await response.json(); if (!data.success) throw new Error();
+        document.querySelector('#empty-mappings')?.remove(); const item = data.mapping;
+        const row = document.createElement('tr'); row.innerHTML = `<td><strong></strong></td><td><i class="bi bi-arrow-right text-primary"></i></td><td><span class="badge text-bg-light border"></span></td><td></td><td><span class="text-success small"><i class="bi bi-check-circle"></i> Đã thêm</span></td>`;
+        row.querySelector('strong').textContent = item.sourceHeader; row.querySelector('.badge').textContent = item.targetColumn; row.children[3].textContent = item.dataType;
+        document.querySelector('#mapping-list').appendChild(row); mappingForm.querySelector('[name=SourceHeader]').value = ''; mappingForm.querySelector('[name=TargetColumn]').value = '';
+    } catch { alert('Không thể thêm mapping. Vui lòng thử lại.'); } finally { button.disabled = false; }
+});
+</script>
+}
