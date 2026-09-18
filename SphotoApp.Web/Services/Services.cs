@@ -212,6 +212,11 @@ public class EppAutomationService(IOptions<EppAutomationOptions> options,IOption
     string? ResolveBrowserPath()
     {
         if (!string.IsNullOrWhiteSpace(options.Value.BrowserExecutablePath) && File.Exists(options.Value.BrowserExecutablePath)) return options.Value.BrowserExecutablePath;
+        var bundled = Path.Combine(env.ContentRootPath, ".playwright");
+        var bundledChrome = Directory.Exists(bundled)
+            ? Directory.EnumerateDirectories(bundled, "chromium-*", SearchOption.TopDirectoryOnly).OrderByDescending(x => x).Select(x => Path.Combine(x, "chrome-win", "chrome.exe")).FirstOrDefault(File.Exists)
+            : null;
+        if (!string.IsNullOrWhiteSpace(bundledChrome)) return bundledChrome;
         var systemBrowsers = new[]
         {
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Google", "Chrome", "Application", "chrome.exe"),
@@ -225,6 +230,7 @@ public class EppAutomationService(IOptions<EppAutomationOptions> options,IOption
         return Directory.Exists(cache) ? Directory.EnumerateDirectories(cache,"chromium-*").OrderByDescending(x=>x).Select(x=>Path.Combine(x,"chrome-win","chrome.exe")).FirstOrDefault(File.Exists) : null;
     }
 }
+
 
 
 
