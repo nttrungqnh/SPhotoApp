@@ -179,6 +179,10 @@ public class EppAutomationService(IOptions<EppAutomationOptions> options,IOption
     {
         IPage? page=null; var step="Khởi tạo trình duyệt";
         try {
+            // Somee does not expose the default user profile path used by Playwright.
+            var localPlaywright = Path.Combine(env.ContentRootPath, ".playwright");
+            if (Directory.Exists(localPlaywright))
+                Environment.SetEnvironmentVariable("PLAYWRIGHT_DRIVER_SEARCH_PATH", localPlaywright);
             using var pw=await Playwright.CreateAsync(); var browserPath=ResolveBrowserPath(); await using var browser=await pw.Chromium.LaunchAsync(new(){Headless=options.Value.Headless,ExecutablePath=browserPath}); page=await browser.NewPageAsync(); page.SetDefaultTimeout(options.Value.Timeout);
             step="Mở trang đăng nhập EPP"; await page.GotoAsync(c.LoginUrl, new(){WaitUntil=WaitUntilState.DOMContentLoaded});
             step="Tìm ô Email"; await page.Locator(string.Join(",",EppSelectors.Email)).First.FillAsync(c.Username); step="Tìm ô Password"; await page.Locator(string.Join(",",EppSelectors.Password)).First.FillAsync(configs.Decrypt(c)); step="Bấm Sign In"; await page.Locator(string.Join(",",EppSelectors.LoginButton)).First.ClickAsync();
@@ -195,7 +199,7 @@ public class EppAutomationService(IOptions<EppAutomationOptions> options,IOption
         } catch(Exception ex) {
             var basePath = Path.Combine(env.ContentRootPath,storage.Value.Root,storage.Value.ErrorFolder,$"epp_error_{DateTime.Now:yyyyMMdd_HHmmss}"); Directory.CreateDirectory(Path.GetDirectoryName(basePath)!); var screenshot = basePath+".png";
             try { if(page is not null) await page.ScreenshotAsync(new(){Path=screenshot,FullPage=true}); } catch { }
-            await File.WriteAllTextAsync(basePath+".txt",$"Step: {step}{Environment.NewLine}Exception: {ex.GetType().Name}{Environment.NewLine}Message: {ex.Message}{Environment.NewLine}Url: {page?.Url}");
+            await File.WriteAllTextAsync(basePath+".txt",$"Step: {step}{Environment.NewLine}{ex}{Environment.NewLine}Url: {page?.Url}");
             log.LogError(ex,"EPP automation failed. Screenshot: {Screenshot}",screenshot);
             var message = ex is InvalidOperationException ? ex.Message
                 : ex.Message.Contains("Executable doesn't exist",StringComparison.OrdinalIgnoreCase) ? "Chưa cài Chromium cho Playwright. Hãy chạy install-playwright.ps1 rồi khởi động lại ứng dụng."
@@ -208,9 +212,22 @@ public class EppAutomationService(IOptions<EppAutomationOptions> options,IOption
     string? ResolveBrowserPath()
     {
         if (!string.IsNullOrWhiteSpace(options.Value.BrowserExecutablePath) && File.Exists(options.Value.BrowserExecutablePath)) return options.Value.BrowserExecutablePath;
-        var systemChrome=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),"Google","Chrome","Application","chrome.exe");
-        if (File.Exists(systemChrome)) return systemChrome;
+        var systemBrowsers = new[]
+        {
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Google", "Chrome", "Application", "chrome.exe"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Google", "Chrome", "Application", "chrome.exe"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Microsoft", "Edge", "Application", "msedge.exe"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Microsoft", "Edge", "Application", "msedge.exe")
+        };
+        var systemChrome = systemBrowsers.FirstOrDefault(File.Exists);
+        if (!string.IsNullOrWhiteSpace(systemChrome)) return systemChrome;
         var cache=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"ms-playwright");
         return Directory.Exists(cache) ? Directory.EnumerateDirectories(cache,"chromium-*").OrderByDescending(x=>x).Select(x=>Path.Combine(x,"chrome-win","chrome.exe")).FirstOrDefault(File.Exists) : null;
     }
 }
+
+
+
+
+
+
