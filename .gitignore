@@ -8,3 +8,4 @@ SphotoApp.Web/Storage/Errors/
 *.sqlite
 *.user
 *.suo
+artifacts/

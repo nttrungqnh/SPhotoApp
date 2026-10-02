@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SphotoApp.Web", "SphotoApp.Web\SphotoApp.Web.csproj", "{CA0B14B9-F9BD-4250-98EC-C31A78DCE855}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SphotoApp.WinForms", "SphotoApp.WinForms\SphotoApp.WinForms.csproj", "{330ADDC4-859D-4806-9EDA-5C6A2E4A3864}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{CA0B14B9-F9BD-4250-98EC-C31A78DCE855}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CA0B14B9-F9BD-4250-98EC-C31A78DCE855}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CA0B14B9-F9BD-4250-98EC-C31A78DCE855}.Release|Any CPU.Build.0 = Release|Any CPU
+		{330ADDC4-859D-4806-9EDA-5C6A2E4A3864}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{330ADDC4-859D-4806-9EDA-5C6A2E4A3864}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{330ADDC4-859D-4806-9EDA-5C6A2E4A3864}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{330ADDC4-859D-4806-9EDA-5C6A2E4A3864}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
