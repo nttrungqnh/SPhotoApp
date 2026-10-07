@@ -51,6 +51,7 @@ internal static class Program
         services.AddScoped<IEppAutomationService, EppAutomationService>();
         services.AddScoped<IGmailConnectionService, GmailConnectionService>();
         services.AddHttpClient<IGoogleDriveService, GoogleDriveService>();
+        services.AddHttpClient<ILinkFileCountService, LinkFileCountService>();
         return services;
     }
 

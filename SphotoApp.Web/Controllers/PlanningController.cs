@@ -68,18 +68,19 @@ public class PlanningController(AppDbContext db, IEppConfigService config, IEppA
             using var sourceBook = new XLWorkbook(history.SourceFilePath);
             var sourceSheet = sourceBook.Worksheets.First();
             sourceTimes = sourceSheet.RowsUsed().Skip(1).Where(r => !r.CellsUsed().All(cell => cell.IsEmpty()))
-                .OrderBy(r => r.Cell(4).GetString(), StringComparer.OrdinalIgnoreCase)
-                .ThenBy(r => DateTime.TryParse(r.Cell(2).GetString(), out var d) ? d : DateTime.MaxValue)
+                .OrderBy(r => r.Cell(9).GetString(), StringComparer.OrdinalIgnoreCase)
+                .ThenBy(r => r.Cell(10).GetString(), StringComparer.OrdinalIgnoreCase)
+                .ThenBy(r => r.Cell(4).GetString(), StringComparer.OrdinalIgnoreCase)
                 .Select(r => r.Cell(2).GetString()).ToList();
         }
-        var headers = new[] { "STT", "Thời gian", sheet.Cell(1, 1).GetString(), sheet.Cell(1, 2).GetString(), sheet.Cell(1, 3).GetString(), sheet.Cell(1, 4).GetString(), "Nguồn link", sheet.Cell(1, 5).GetString(), "Yêu cầu khách hàng", "Yêu cầu từ Email" };
+        var headers = new[] { "STT", "Thời gian", "DL", sheet.Cell(1, 1).GetString(), sheet.Cell(1, 2).GetString(), sheet.Cell(1, 3).GetString(), "Số file", sheet.Cell(1, 4).GetString(), "Nguồn link", sheet.Cell(1, 5).GetString(), "Specific Description", "Yêu cầu khách hàng", "Yêu cầu từ Email" };
         var rows = sheet.RowsUsed().Where(row => row.RowNumber() >= 2).Select((row,index) =>
         {
-            var link = row.Cell(5).GetString();
+            var link = row.Cell(3).GetString();
             var source = string.IsNullOrWhiteSpace(link) ? "" :
                 (System.Text.RegularExpressions.Regex.IsMatch(link, "(?:drive\\.google\\.com)", System.Text.RegularExpressions.RegexOptions.IgnoreCase) ? "Google Drive" :
                  System.Text.RegularExpressions.Regex.IsMatch(link, "(?:dropbox\\.com|we\\.tl|wetransfer\\.com)", System.Text.RegularExpressions.RegexOptions.IgnoreCase) ? "Email" : "Có sẵn");
-            return new[] { (index + 1).ToString(), index < sourceTimes.Count ? sourceTimes[index] : "", row.Cell(1).GetString(), row.Cell(2).GetString(), row.Cell(3).GetString(), row.Cell(4).GetString(), source, link, row.Cell(12).GetString(), row.Cell(13).GetString() };
+            return new[] { (index + 1).ToString(), index < sourceTimes.Count ? sourceTimes[index] : "", row.Cell(8).GetString(), row.Cell(1).GetString(), row.Cell(2).GetString(), row.Cell(3).GetString(), row.Cell(6).GetString(), row.Cell(4).GetString(), source, "", row.Cell(11).GetString(), row.Cell(12).GetString(), row.Cell(13).GetString() };
         }).ToArray();
         return Json(new { headers, rows, totalRecords = history.RecordCount });
     }
