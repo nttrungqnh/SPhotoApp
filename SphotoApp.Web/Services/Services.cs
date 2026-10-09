@@ -165,6 +165,12 @@ public interface IEppAutomationService { Task<EppDownloadResult> DownloadPlannin
 public static class EppSelectors
 {
     public const string PlanningUrl = "https://epp-portal.com/orders/plannings";
+    public static string CurrentPlanningDate(DateTimeOffset now) => now.ToOffset(TimeSpan.FromHours(7)).ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+    public static string CurrentPlanningUrl(DateTimeOffset now)
+    {
+        var date = CurrentPlanningDate(now);
+        return $"{PlanningUrl}?type=property&from={date}&to={date}";
+    }
     public static readonly string[] Email = { "input[type=email]", "input[name=email]", "input[name=username]" };
     public static readonly string[] Password = { "input[type=password]" };
     public static readonly string[] LoginButton = { "button:has-text('Sign In')", "button:has-text('Login')", "input[type=submit]" };
@@ -194,7 +200,14 @@ public class EppAutomationService(IOptions<EppAutomationOptions> options,IOption
                 if (passwordStillVisible) throw new InvalidOperationException("EPP vẫn hiển thị form đăng nhập; hãy kiểm tra tài khoản hoặc mật khẩu.");
                 return new(true,null,null,null,DateTime.UtcNow);
             }
-            step="Mở trang Planning"; await page.GotoAsync(EppSelectors.PlanningUrl, new(){WaitUntil=WaitUntilState.DOMContentLoaded});
+            var planningNow = DateTimeOffset.UtcNow;
+            var planningDate = EppSelectors.CurrentPlanningDate(planningNow);
+            step=$"Chọn ngày Planning {planningDate}";
+            await page.GotoAsync(EppSelectors.CurrentPlanningUrl(planningNow), new(){WaitUntil=WaitUntilState.DOMContentLoaded});
+            var from = await page.Locator("#frm-download input[name='from']").InputValueAsync();
+            var to = await page.Locator("#frm-download input[name='to']").InputValueAsync();
+            if (from != planningDate || to != planningDate)
+                throw new InvalidOperationException($"EPP chưa áp dụng đúng ngày {planningDate} vào form Download. Dừng tải để tránh lấy sai ngày.");
             step="Bấm nút Download trên thanh công cụ"; var task=page.WaitForDownloadAsync(); await page.Locator(string.Join(",",EppSelectors.Download)).First.ClickAsync(); var d=await task;
             var n=$"Planning_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx"; var path=Path.Combine(env.ContentRootPath,storage.Value.Root,storage.Value.DownloadFolder,n); await d.SaveAsAsync(path); return new(true,n,path,null,DateTime.UtcNow);
         } catch(Exception ex) {
